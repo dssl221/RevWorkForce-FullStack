@@ -1,0 +1,180 @@
+<!DOCTYPE html>
+<html lang="en" xmlns:th="http://www.thymeleaf.org">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Employees - RevWorkForce</title>
+    <meta name="_csrf" th:content="${_csrf.token}"/>
+    <meta name="_csrf_header" th:content="${_csrf.headerName}"/>
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/css/bootstrap.min.css" rel="stylesheet">
+    <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.0/css/all.min.css" rel="stylesheet">
+    <link th:href="@{/css/style.css}" href="/css/style.css" rel="stylesheet">
+</head>
+
+<body>
+    <div class="app-layout">
+        <aside class="sidebar">
+            <div class="sidebar-brand">
+                <h2><i class="fas fa-building"></i> RevWorkForce</h2><small id="sidebarUserRole"></small>
+            </div>
+            <ul class="sidebar-nav" id="sidebarNav"></ul>
+        </aside>
+        <main class="main-content">
+            <div class="top-bar">
+                <h1><i class="fas fa-users"></i> Employees</h1>
+                <div class="top-bar-actions">
+                    <div class="notification-badge" onclick="toggleNotifications()" style="position:relative">
+                        <i class="fas fa-bell"></i><span class="badge" id="notifBadge" style="display:none">0</span>
+                        <div class="notification-dropdown" id="notifDropdown"></div>
+                    </div>
+                    <div class="user-info">
+                        <div class="user-avatar" id="userAvatar"></div><span id="topBarUser"></span>
+                    </div>
+                </div>
+            </div>
+
+            <div class="tab-nav" id="employeeTabs"></div>
+
+            <!-- Employees Tab -->
+            <div class="tab-content active" id="employeesOnly">
+                <div class="card-custom">
+                    <div class="card-header-custom">
+                        <h3><i class="fas fa-user"></i> Employees</h3>
+                        <input class="form-control-custom" id="employeeSearchEmp" placeholder="Search employees..."
+                            style="max-width:280px">
+                    </div>
+                    <div id="employeesOnlyTable"></div>
+                </div>
+            </div>
+
+            <!-- Managers Tab -->
+            <div class="tab-content" id="managersOnly">
+                <div class="card-custom">
+                    <div class="card-header-custom">
+                        <h3><i class="fas fa-user-tie"></i> Managers</h3>
+                        <input class="form-control-custom" id="employeeSearchMgr" placeholder="Search managers..."
+                            style="max-width:280px">
+                    </div>
+                    <div id="managersOnlyTable"></div>
+                </div>
+            </div>
+
+            <!-- All Directory Tab (legacy, for non-admin) -->
+            <div class="tab-content" id="directory">
+                <div class="card-custom">
+                    <div class="card-header-custom">
+                        <h3>Employee Directory</h3>
+                        <input class="form-control-custom" id="employeeSearch"
+                            placeholder="Search by name, email, dept..." style="max-width:280px">
+                    </div>
+                    <div id="employeeTable"></div>
+                </div>
+            </div>
+
+            <!-- My Team Tab (Manager only) -->
+            <div class="tab-content" id="myTeam">
+                <div class="card-custom">
+                    <div class="card-header-custom">
+                        <h3><i class="fas fa-people-group"></i> My Team</h3>
+                    </div>
+                    <div id="myTeamTable"></div>
+                </div>
+            </div>
+
+            <!-- Add Employee Tab (Admin only) -->
+            <div class="tab-content" id="addEmployee">
+                <div class="card-custom">
+                    <div class="card-header-custom">
+                        <h3>Add New Employee</h3>
+                    </div>
+                    <form id="addEmployeeForm" onsubmit="handleAddEmployee(event)">
+                        <div class="grid-2">
+                            <div class="form-floating-custom">
+                                <label class="form-label-custom">Full Name *</label>
+                                <input class="form-control-custom" id="empName" required placeholder="Full name">
+                            </div>
+                            <div class="form-floating-custom">
+                                <label class="form-label-custom">Email *</label>
+                                <input type="email" class="form-control-custom" id="empEmail" required
+                                    placeholder="Email">
+                            </div>
+                        </div>
+                        <div class="grid-2">
+                            <div class="form-floating-custom">
+                                <label class="form-label-custom">Password *</label>
+                                <div class="password-wrapper">
+                                    <input type="password" class="form-control-custom" id="empPassword" required
+                                        placeholder="Password" minlength="6">
+                                    <button type="button" class="password-toggle"
+                                        onclick="togglePasswordVisibility('empPassword', this)">
+                                        <i class="fas fa-eye"></i>
+                                    </button>
+                                </div>
+                            </div>
+                            <div class="form-floating-custom">
+                                <label class="form-label-custom">Employee ID</label>
+                                <input class="form-control-custom" id="empId" placeholder="EMP00006">
+                            </div>
+                        </div>
+                        <div class="grid-2">
+                            <div class="form-floating-custom">
+                                <label class="form-label-custom">Role *</label>
+                                <select class="form-control-custom" id="empRole">
+                                    <option value="EMPLOYEE">Employee</option>
+                                    <option value="MANAGER">Manager</option>
+                                    <option value="ADMIN">Admin</option>
+                                </select>
+                            </div>
+                            <div class="form-floating-custom">
+                                <label class="form-label-custom">Department</label>
+                                <input class="form-control-custom" id="empDepartment" placeholder="Department">
+                            </div>
+                        </div>
+                        <div class="grid-2">
+                            <div class="form-floating-custom">
+                                <label class="form-label-custom">Designation</label>
+                                <input class="form-control-custom" id="empDesignation" placeholder="Designation">
+                            </div>
+                            <div class="form-floating-custom">
+                                <label class="form-label-custom">Phone *</label>
+                                <input type="tel" class="form-control-custom" id="empPhone"
+                                    placeholder="Phone (10 digits)" required pattern="[0-9]{10}" minlength="10"
+                                    maxlength="10" title="Phone must be exactly 10 digits">
+                            </div>
+                        </div>
+                        <div class="grid-2">
+                            <div class="form-floating-custom">
+                                <label class="form-label-custom">Salary</label>
+                                <input type="number" class="form-control-custom" id="empSalary" placeholder="Salary">
+                            </div>
+                            <div class="form-floating-custom">
+                                <label class="form-label-custom">Reporting Manager</label>
+                                <select class="form-control-custom" id="empManager">
+                                    <option value="">No Manager</option>
+                                </select>
+                            </div>
+                        </div>
+                        <button type="submit" class="btn-primary-custom mt-2"><i class="fas fa-user-plus"></i> Add
+                            Employee</button>
+                    </form>
+                </div>
+            </div>
+        </main>
+    </div>
+    <script src="https://code.jquery.com/jquery-3.7.1.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/js/bootstrap.bundle.min.js"></script>
+    <script th:src="@{/js/app.js}" src="/js/app.js"></script>
+    <script>
+        // Load manager options when page loads for admin
+        $(document).ready(function () {
+            setTimeout(function () {
+                if (currentUser && currentUser.role === 'ADMIN') {
+                    loadManagerOptions();
+                }
+            }, 1000);
+        });
+    </script>
+</body>
+
+</html>
