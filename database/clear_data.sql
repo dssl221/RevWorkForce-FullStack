@@ -1,0 +1,12 @@
+DELETE FROM notifications;
+DELETE FROM leave_balances;
+DELETE FROM leave_requests;
+DELETE FROM goals;
+DELETE FROM performance_reviews;
+DELETE FROM holidays;
+DELETE FROM announcements;
+DELETE FROM users;
+DELETE FROM leave_types;
+DELETE FROM departments;
+COMMIT;
+EXIT;
